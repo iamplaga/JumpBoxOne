@@ -31,7 +31,12 @@ def create_trusted_ip_file():
             ip_file.write("#   192.168.1.100\n")
             ip_file.write("#   10.0.0.0/24\n")
         print(f"Done! '{trusted_ip_file}' created.")
+   
+    # Define the path where the JumpBoxOne folder will be located
+    jumpbox_dir = f"/home/{getpass.getuser()}/JumpBoxOne"
     
+    print(f"All files will be located in the folder: {jumpbox_dir}")
+   
     # Add or update format directions
     with open(trusted_ip_path, 'a') as ip_file:
         ip_file.write("\n# Additional Format Directions:\n")
@@ -78,7 +83,7 @@ def configure_firewall():
         subprocess.run(['sudo', 'sed', '-i', 's/^Port 22$/Port 8019/', '/etc/ssh/sshd_config'])
         
         # Restart SSH service
-        #subprocess.run(['sudo', 'systemctl', 'restart', 'ssh'])
+        subprocess.run(['sudo', 'systemctl', 'restart', 'ssh'])
         
         # Enable the firewall
         subprocess.run(['sudo', 'ufw', 'enable'])

@@ -181,8 +181,7 @@ if __name__ == "__main__":
     # Step 2: Secure SSH configuration
     secure_ssh()
 
-    # Step 3: Configure firewall rules
-    configure_firewall()
+    
 
     # Step 4: Configure centralized logging
     configure_logging()
@@ -196,4 +195,6 @@ if __name__ == "__main__":
     # Step 7: Perform regular backups (to be implemented as needed)
     perform_backups()
 
+     # Step 3: Configure firewall rules
+    configure_firewall()
     print("All steps completed successfully!")

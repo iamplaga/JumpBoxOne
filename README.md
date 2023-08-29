@@ -105,7 +105,7 @@ Contributions to JumpBoxOne are welcome! If you have suggestions, bug reports, o
 
 ## License
 
-This project is licensed under the [NONE](LICENSE).
+This project is licensed under the [MIT](LICENSE).
 ```
 
 In this extended README, we've added a section on Elastic Stack Integration, which explains how to set up and configure the Elastic Stack for log analysis and visualization. It also emphasizes security by mentioning the need to control firewall rules effectively. You should replace placeholders with actual details and customize the Elastic Stack integration instructions based on your specific setup.

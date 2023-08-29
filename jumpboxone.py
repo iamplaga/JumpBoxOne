@@ -339,3 +339,4 @@ if __name__ == "__main__":
      # Configure firewall rules
     configure_firewall()
     print("All steps completed successfully!")
+    display_ascii_header()

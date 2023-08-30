@@ -1,9 +1,11 @@
 import os
 import subprocess
 import getpass
-from software_installer import install_package
 import sys
+
 from software_check import Install_Check
+from software_installer import install_package
+
 
 def check_sudo():
     # Check if the script is running with sudo (root) privileges
@@ -202,11 +204,13 @@ def check_if_elasticsearch_installed():
     except subprocess.CalledProcessError as e:
         # The command will raise an exception if elasticsearch is not found
         return False
+    except FileNotFoundError:
+        return False
 
 def configure_logging():
     print("Configuring centralized logging...")
     
-    # Check if Elasticsearch is installed
+    # # Check if Elasticsearch is installed
     elasticsearch_installed = check_if_elasticsearch_installed()
     
     # Install rsyslog for centralized logging
@@ -299,18 +303,19 @@ def display_ascii_header():
 
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-if __name__ == "__main__":
+
     # "Update and upgrade system packages
-    
+def main(): 
     
     display_ascii_header()
     
     update_system()
-
+    #  Configure centralized logging
+    configure_logging()
    # This will check & ask for all critical packages that may need to be installed 
     Install_Check()
 
-# Call the function to create or update the trusted IP file
+#Call the function to create or update the trusted IP file
     create_trusted_ip_file()
 
 # Call the function to generate an SSH key for the current user
@@ -324,8 +329,7 @@ if __name__ == "__main__":
 
     install_software_prompt()    
 
-    #  Configure centralized logging
-    configure_logging()
+    
 
     #  Restrict user privileges
     restrict_user_privileges()
@@ -340,3 +344,6 @@ if __name__ == "__main__":
     configure_firewall()
     print("All steps completed successfully!")
     display_ascii_header()
+
+if __name__ == "__main__":
+    main()

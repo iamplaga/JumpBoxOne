@@ -1,16 +1,12 @@
+  _____                              ____                    _____                     
+/\___ \                            /\  _`\                 /\  __`\                   
+\/__/\ \  __  __    ___ ___   _____\ \ \L\ \    ___   __  _\ \ \/\ \    ___      __   
+   _\ \ \/\ \/\ \ /' __` __`\/\ '__`\ \  _ <'  / __`\/\ \/'\\ \ \ \ \ /' _ `\  /'__`\ 
+  /\ \_\ \ \ \_\ \/\ \/\ \/\ \ \ \L\ \ \ \L\ \/\ \L\ \/>  </ \ \ \_\ \/\ \/\ \/\  __/ 
+  \ \____/\ \____/\ \_\ \_\ \_\ \ ,__/\ \____/\ \____//\_/\_\ \ \_____\ \_\ \_\ \____\
+   \/___/  \/___/  \/_/\/_/\/_/\ \ \/  \/___/  \/___/ \//\/_/  \/_____/\/_/\/_/\/____/
 
-
-```
-
-
-       dP                               888888ba                     .88888.                    
-       88                               88    `8b                   d8'   `8b                   
-       88 dP    dP 88d8b.d8b. 88d888b. a88aaaa8P' .d8888b. dP.  .dP 88     88 88d888b. .d8888b. 
-       88 88    88 88'`88'`88 88'  `88  88   `8b. 88'  `88  `8bd8'  88     88 88'  `88 88ooood8 
-88.  .d8P 88.  .88 88  88  88 88.  .88  88    .88 88.  .88  .d88b.  Y8.   .8P 88    88 88.  ... 
- `Y8888'  `88888P' dP  dP  dP 88Y888P'  88888888P `88888P' dP'  `dP  `8888P'  dP    dP `88888P' 
-                              88                                                                
-                              dP                                                                
+README:
 
 ```
 # JumpBoxOne
@@ -62,11 +58,10 @@ To install JumpBoxOne, follow these steps:
    ```
 
 JumpBoxOne will guide you through the installation process and any necessary configurations.
-****NOTE**** SSH Will disconnect at the end of the installation when the port changes from default port 22 to port 8019
+****NOTE**** SSH Will disconnect at the end of installation when port changes from default port 22 to port 8019
 ## Usage
 
-JumpBoxOne is designed to be user-friendly. 
-Simply run the program and follow the on-screen prompts to configure your server's firewall rules, set up log forwarding, ensure essential packages are installed, and more.
+JumpBoxOne is designed to be user-friendly. Simply run the program and follow the on-screen prompts to configure your server's firewall rules, set up log forwarding, ensure essential packages are installed, and more.
 
 Example usage:
 
@@ -90,14 +85,13 @@ JumpBoxOne seamlessly integrates with the Elastic Stack to provide advanced log 
 
 1. **Elasticsearch, Logstash, and Kibana:** Install and configure the Elastic Stack on your server as per your requirements. Ensure that Elasticsearch, Logstash, and Kibana are up and running.
 
-2. **Firewall Rules:** Configure firewall rules to allow communication between your server and the Elastic Stack components.
-3. Common ports to open include 9200 (Elasticsearch), 5044 (Logstash), and 5601 (Kibana). Adjust these ports as needed.
+2. **Firewall Rules:** Configure firewall rules to allow communication between your server and the Elastic Stack components. Common ports to open include 9200 (Elasticsearch), 5044 (Logstash), and 5601 (Kibana). Adjust these ports as needed.
 
-4. **Log Forwarding:** Configure Logstash to accept incoming logs from your server. Update Logstash configuration files to specify input and output plugins according to your log forwarding requirements.
+3. **Log Forwarding:** Configure Logstash to accept incoming logs from your server. Update Logstash configuration files to specify input and output plugins according to your log forwarding requirements.
 
-5. **JumpBoxOne Configuration:** Customize JumpBoxOne's `rsyslog` configuration to forward logs to Logstash or the appropriate input endpoint of your Logstash setup.
+4. **JumpBoxOne Configuration:** Customize JumpBoxOne's `rsyslog` configuration to forward logs to Logstash or the appropriate input endpoint of your Logstash setup.
 
-6. **Security:** Ensure that only necessary ports are open for communication with the Elastic Stack and other services. JumpBoxOne helps you control firewall rules effectively.
+5. **Security:** Ensure that only necessary ports are open for communication with the Elastic Stack and other services. JumpBoxOne helps you control firewall rules effectively.
 
 ## Contributing
 

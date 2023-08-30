@@ -1,13 +1,22 @@
 import subprocess
 
+
+
+
 def check_system_packages(packages):
     missing_packages = []
     for package in packages:
         try:
-            subprocess.check_output([package, "--version"])
-        except subprocess.CalledProcessError:
+            subprocess.run([package, "--version"], stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, text=True)
+        except FileNotFoundError:
             missing_packages.append(package)
     return missing_packages
+    
+    return missing_packages
+
+def install_system_packages(packages):
+    for package in packages:
+        subprocess.run(["sudo", "apt", "install", "-y", package])
 
 def install_system_packages(packages):
     for package in packages:
@@ -64,6 +73,7 @@ def Install_Check():
             install_python_packages(missing_python_packages)
         else:
             print("Please install the missing Python packages manually.")
+            pass
     else:
         print("All required Python packages are installed.")
 

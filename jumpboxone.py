@@ -35,11 +35,20 @@ def update_system():
 
 # Function to create or update the trusted IP file
 def create_trusted_ip_file():
-    trusted_ip_directory = "JumpBoxOne"
+    # Determine the absolute path of the script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Construct the full path to the 'trusted_ip.txt' file within the 'JumpBoxOne' directory
+    trusted_ip_directory = os.path.join(script_dir, "JumpBoxOne")
     trusted_ip_file = "trusted_ip.txt"
     trusted_ip_path = os.path.join(trusted_ip_directory, trusted_ip_file)
     
-    # Check if the trusted IP file exists
+    # Check if the trusted IP directory exists
+    if not os.path.exists(trusted_ip_directory):
+        # Directory does not exist; create it
+        os.makedirs(trusted_ip_directory)
+
+    # Check if the 'trusted_ip.txt' file exists
     if os.path.exists(trusted_ip_path):
         # File already exists; do nothing
         print(f"Trusted IP file '{trusted_ip_file}' already exists.")
@@ -53,30 +62,20 @@ def create_trusted_ip_file():
             ip_file.write("#   192.168.1.100\n")
             ip_file.write("#   10.0.0.0/24\n")
         print(f"Done! '{trusted_ip_file}' created.")
-   
-    # Define the path where the JumpBoxOne folder will be located
-    jumpbox_dir = f"/home/{getpass.getuser()}/JumpBoxOne"
-    
-    print(f"All files will be located in the folder: {jumpbox_dir}")
-   
-    # Add or update format directions
-    with open(trusted_ip_path, 'a') as ip_file:
-        ip_file.write("\n# Additional Format Directions:\n")
-        ip_file.write("# - Enter each IP address or subnet on a separate line.\n")
-        ip_file.write("# - Use the format 'IP_ADDRESS' or 'IP_ADDRESS/SUBNET_MASK'.\n")
-        ip_file.write("# - Comments (lines starting with '#') are allowed.\n")
 
+    # Get the user's IP address using 'curl' (ifconfig.me)
+    try:
+        user_ip = subprocess.check_output(['curl', 'ifconfig.me']).decode('utf-8').strip()
+        
+        # Append the user's IP address to the trusted IP file
+        with open(trusted_ip_path, 'a') as ip_file:
+            ip_file.write(f"User's IP address: {user_ip}\n")
 
-    # Get the user's IP address8888888888888888888888888
-    user_ip = subprocess.check_output(['curl', 'ifconfig.me']).decode('utf-8').strip()
-
-
-    # Append the user's IP address to the trusted IP file
-    with open(trusted_ip_path, 'a') as ip_file:
-        ip_file.write(user_ip + '\n')
-
-    # Optionally, you can print a message to confirm the addition
-    print(f"User's IP address ({user_ip}) added to trusted IP file.")
+        # Optionally, you can print a message to confirm the addition
+        print(f"User's IP address ({user_ip}) added to trusted IP file.")
+    except subprocess.CalledProcessError as e:
+        # Handle any errors that may occur when fetching the user's IP address
+        print("Failed to fetch the user's IP address. The IP address will not be added to the trusted IP file.")
 
 # Function to secure SSH configuration
 def secure_ssh():

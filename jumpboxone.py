@@ -35,7 +35,7 @@ def update_system():
 
 # Function to create or update the trusted IP file
 def create_trusted_ip_file():
-    trusted_ip_directory = "JumpBoxOne"
+    trusted_ip_directory = "~/JumpBoxOne"
     trusted_ip_file = "trusted_ip.txt"
     trusted_ip_path = os.path.join(trusted_ip_directory, trusted_ip_file)
     

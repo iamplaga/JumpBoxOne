@@ -308,7 +308,7 @@ def display_ascii_header():
 def main(): 
     
     display_ascii_header()
-    
+    check_sudo()
     update_system()
     #  Configure centralized logging
     configure_logging()

@@ -3,10 +3,14 @@ import subprocess
 import getpass
 import sys
 
-from software_check import Install_Check
-from software_installer import install_package
 
-
+from monitor import install_elastic_search
+from monitor import install_kibana
+from monitor import install_logstash
+from monitor import store_elastic_pass
+from artwork import display_status
+from artwork import display_ascii_header
+from backups import perform_rsync_backup
 def check_sudo():
     # Check if the script is running with sudo (root) privileges
     if os.geteuid() != 0:
@@ -85,12 +89,12 @@ def secure_ssh():
         ssh_config.write("\nPasswordAuthentication no\n")
         ssh_config.write("PermitRootLogin no\n")
     # Restart SSH service ********************************************
-    #subprocess.run(['sudo', 'systemctl', 'restart', 'ssh'])
+    subprocess.run(['sudo', 'systemctl', 'restart', 'ssh'])
     print(" Done!")
 
 # Function to set up firewall rules
 def configure_firewall():
-    #global trusted_ip_directory, trusted_ip_file, ssh_port
+   
     
     print("Configuring firewall rules...")
     
@@ -104,7 +108,7 @@ def configure_firewall():
         allowed_ips = ["127.0.0.1"] + trusted_ips
         for ip in allowed_ips:
             subprocess.run(['sudo', 'ufw', 'allow', 'from', ip, 'to', 'any', 'port', ssh_port])
-        
+            print(f"Access to port {ssh_port} allowed from {ip}.")
         # Delete existing SSH rules for port 22
         subprocess.run(['sudo', 'ufw', 'delete', 'allow', '22'])
         
@@ -119,7 +123,7 @@ def configure_firewall():
         
         # Allow communication with necessary programs (add more rules as needed)
         # Example: Allow incoming traffic to port 1234
-        subprocess.run(['sudo', 'ufw', 'allow', '5601', '8019'])
+        subprocess.run(['sudo', 'ufw', 'allow', '5601', '8019', '9200', '5044'])
         
         print("Done! Firewall rules configured based on trusted IP addresses. SSH port changed to", ssh_port)
     else:
@@ -169,108 +173,66 @@ def generate_ssh_key():
 
 # The script can continue to the next function after user acknowledgment
 
-def configure_log_forwarding():
-    print("Configure log forwarding to a **External** SIEM system? (yes/no): ")
-    user_choice = input().strip().lower()
-
-    if user_choice == 'yes':
-        print("Configuring log forwarding...")
-        print("Record the following information to configure the SIEM on your external server properly.")
-        # Prompt the user for the SIEM server IP and port
-        siem_server_ip = input("Enter the SIEM server IP: ")
-        siem_server_port = input("Enter the SIEM server port (e.g., 514): ")
-        
-        # Write the SIEM server and port to the rsyslog configuration
-        with open('/etc/rsyslog.d/50-default.conf', 'a') as rsyslog_config:
-            rsyslog_config.write(f"\n*.* @ {siem_server_ip}:{siem_server_port}\n")
-        
-        # Restart the rsyslog service
-        subprocess.run(['sudo', 'systemctl', 'restart', 'rsyslog'])
-        
-        print(f"Log forwarding to {siem_server_ip}:{siem_server_port} configured.")
-    elif user_choice == 'no':
-        print("Log forwarding configuration skipped.")
-        print("I will configure your logs to forwarded to the Elastic Stack on the local host")
-    else:
-        print("Invalid choice. Log forwarding configuration skipped.")
 
 
-def check_if_elasticsearch_installed():
+
+def check_if_rsyslog_installed():
     try:
-        # Use subprocess to run a command that checks if the elasticsearch executable is in the PATH
-        subprocess.check_output(['elasticsearch', '--version'], stderr=subprocess.STDOUT, text=True)
+        # Use subprocess to run a command that checks if rsyslog is in the PATH
+        subprocess.check_output(['rsyslogd', '-v'], stderr=subprocess.STDOUT)
         return True
     except subprocess.CalledProcessError as e:
-        # The command will raise an exception if elasticsearch is not found
+        # The command will raise an exception if something goes wrong other than FileNotFoundError
         return False
     except FileNotFoundError:
+        # This will catch the case where 'rsyslog' is not installed
         return False
 
-def configure_logging():
+
+def install_rsyslog():
     print("Configuring centralized logging...")
-    
-    # # Check if Elasticsearch is installed
-    elasticsearch_installed = check_if_elasticsearch_installed()
-    
-    # Install rsyslog for centralized logging
-    subprocess.run(['sudo', 'apt', 'install', '-y', 'rsyslog'])
-    
-    if elasticsearch_installed:
-        # Configure rsyslog to forward logs to Elasticsearch (modify this as needed)
-        elastic_stack_ip = "localhost"  # Change as per your Elasticsearch setup
-        elastic_stack_port = "9200"     # Change as per your Elasticsearch setup
-    
-        with open('/etc/rsyslog.d/50-default.conf', 'a') as rsyslog_config:
-            rsyslog_config.write(f"\n*.* @ {elastic_stack_ip}:{elastic_stack_port}\n")
-        
-        print("Centralized logging configured to forward logs to Elasticsearch.")
+    if not check_if_rsyslog_installed():
+        print("Rsyslog is not installed. Installing now...")
+        # Install rsyslog
+        subprocess.run(['sudo', 'add-apt-repository', 'ppa:adiscon/v8-stable'])
+        subprocess.run(['sudo', 'apt-get', 'update'])
+        subprocess.run(['sudo', 'apt-get', 'install', 'rsyslog'])
+        subprocess.run(['sudo', 'systemctl', 'enable', 'rsyslog'])
+        # Restart rsyslog
+        subprocess.run(['sudo', 'systemctl', 'restart', 'rsyslog'])
     else:
-        print("Elasticsearch is not installed. Rsyslog installed without log forwarding.")
-        print("You can manually configure log forwarding to Elasticsearch later.")
-    
-    # Restart rsyslog
-    subprocess.run(['sudo', 'systemctl', 'restart', 'rsyslog'])
+        print("Rsyslog is already installed.")
+        print("Skipping rsyslog installation.")
     
     print("Done!")
 
-
-
-
-# Function to restrict user privileges
-def restrict_user_privileges():
-    print(" Restricting user privileges...")
-    # Implement RBAC or use 'sudo' to control user permissions
-    # Example: Create a new user and grant sudo access
-    subprocess.run(['sudo', 'useradd', '-m', 'new_user'])
-    subprocess.run(['sudo', 'usermod', '-aG', 'sudo', 'new_user'])
-    print(" Done!")
-
-# Function to disable unnecessary services
-def disable_unnecessary_services():
-    print(" Disabling unnecessary services...")
-    # List and disable unnecessary services
-    services_to_disable = ['service1', 'service2', 'service3']
-    for service in services_to_disable:
-        subprocess.run(['sudo', 'systemctl', 'disable', service])
-    print(" Done!")
+    
+    
 
 # Function to perform regular backups
 def perform_backups():
-    print("Performing regular backups... (to be implemented as needed)")
-    # Implement a backup strategy using tools like 'rsync' or 'backup software'
-    # Schedule backups and test restoration procedures
+    print("Using Rsync to secure your data")
+    perform_rsync_backup()
     print("Done!")
 
 
-def install_software_prompt():
+def install_elk_stack():
     print("Do you want to install Elastic Stack (Elasticsearch, Logstash, Kibana)?")
     user_input = input("Enter 'yes' to install or 'no' to skip: ").strip().lower()
 
     if user_input == 'yes':
-        install_package('elasticsearch')
-        install_package('logstash')
-        install_package('kibana')
-        print("Elastic Stack components installed successfully.")
+        install_elastic_search()
+        print("Elastic Search installation complete, We will now add the password provided to your path")
+        store_elastic_pass()
+        display_status()
+        print("Kibana installation will now begin.")
+        install_kibana()
+        print("Kibana installation is complete ")
+        display_status()
+        install_logstash()
+        print("Logstash installation is complete.")
+        print("ELK Stack components installed successfully.")
+        display_status()
     elif user_input == 'no':
         print("Elastic Stack installation skipped.")
     else:
@@ -285,63 +247,55 @@ def allow_loopback_access(port):
     except Exception as e:
         print(f"Error: {str(e)}")
 
-def display_ascii_header():
-    ascii_header = """ 
-       dP                               888888ba                     .88888.                    
-       88                               88    `8b                   d8'   `8b                   
-       88 dP    dP 88d8b.d8b. 88d888b. a88aaaa8P' .d8888b. dP.  .dP 88     88 88d888b. .d8888b. 
-       88 88    88 88'`88'`88 88'  `88  88   `8b. 88'  `88  `8bd8'  88     88 88'  `88 88ooood8 
-88.  .d8P 88.  .88 88  88  88 88.  .88  88    .88 88.  .88  .d88b.  Y8.   .8P 88    88 88.  ... 
- `Y8888'  `88888P' dP  dP  dP 88Y888P'  88888888P `88888P' dP'  `dP  `8888P'  dP    dP `88888P' 
-                              88                                                                
-                              dP                                                                
-"""
-    print(ascii_header)
+
 
 
 
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 
-    # "Update and upgrade system packages
+    
 def main(): 
     
+   # Ascii Header 
     display_ascii_header()
+   
+   # Check if user has sudo
     check_sudo()
+   
+   # System update1
     update_system()
+   
     #  Configure centralized logging
-    configure_logging()
-   # This will check & ask for all critical packages that may need to be installed 
-    Install_Check()
-
-#Call the function to create or update the trusted IP file
+    install_rsyslog()
+   
+   
+    #Call the function to create or update the trusted IP file
     create_trusted_ip_file()
 
-# Call the function to generate an SSH key for the current user
+    # Call the function to generate an SSH key for the current user
     generate_ssh_key()
 
+ # Configure firewall rules
+    configure_firewall()
     #  Secure SSH configuration
     secure_ssh()
 
-    # Call the function to allow access to the specified port
+    # Function to allow access to the specified port
     allow_loopback_access(port)
-
-    install_software_prompt()    
-
     
+    # Option to install elk stack  
+    install_elk_stack()    
 
-    #  Restrict user privileges
-    restrict_user_privileges()
-
-    #  Disable unnecessary services
-    disable_unnecessary_services()
-
-    # Perform regular backups (to be implemented as needed)
+    # Use Rsync to safe gaurd data
     perform_backups()
 
-     # Configure firewall rules
-    configure_firewall()
+    
+   
     print("All steps completed successfully!")
+   
+    display_status()
+   
     display_ascii_header()
 
 if __name__ == "__main__":
